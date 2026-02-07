@@ -256,9 +256,13 @@ async function factCheckTweet(text) {
 
 // Show the fact-check result overlay
 function showFactCheckResult(tweet, result) {
-  // Remove any existing overlay
-  const existingOverlay = tweet.querySelector('.truthlens-overlay');
+  console.log('TruthLens: showFactCheckResult called', result);
+  console.log('TruthLens: tweet element', tweet);
+  
+  // Remove any existing overlay from the entire tweet
+  const existingOverlay = document.querySelector('.truthlens-overlay');
   if (existingOverlay) {
+    console.log('TruthLens: Removing existing overlay');
     existingOverlay.remove();
   }
   
@@ -291,15 +295,41 @@ function showFactCheckResult(tweet, result) {
     </div>
   `;
   
+  // Stop all event propagation on the overlay
+  overlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  });
+  
+  overlay.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+  });
+  
+  overlay.addEventListener('mouseup', (e) => {
+    e.stopPropagation();
+  });
+  
   // Add close button functionality
   const closeButton = overlay.querySelector('.truthlens-close');
-  closeButton.addEventListener('click', () => {
+  closeButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     overlay.remove();
   });
   
-  // Insert overlay into tweet
-  tweet.style.position = 'relative';
-  tweet.appendChild(overlay);
+  // Find tweet text container and append below it
+  const tweetTextContainer = tweet.querySelector('[data-testid="tweetText"]');
+  if (tweetTextContainer && tweetTextContainer.parentElement) {
+    console.log('TruthLens: Found tweet text container, appending to parent');
+    tweetTextContainer.parentElement.appendChild(overlay);
+  } else {
+    // Fallback: append to tweet article
+    console.log('TruthLens: Using fallback - appending to tweet article');
+    tweet.appendChild(overlay);
+  }
+  
+  console.log('TruthLens: Overlay appended', overlay);
+  console.log('TruthLens: Overlay visible?', overlay.offsetHeight > 0);
 }
 
 // Initialize when DOM is ready

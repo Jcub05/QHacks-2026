@@ -83,9 +83,8 @@ async def fact_check(request: FactCheckRequest):
     Main fact-checking endpoint.
     
     Process:
-    1. Extract searchable claim from tweet using Gemini
-    2. Search for sources using Tavily
-    3. Synthesize fact-check result using Gemini
+    1. Search for sources using Exa (using full tweet text)
+    2. Synthesize fact-check result using Gemini
     """
     try:
         tweet_text = request.text.strip()
@@ -98,19 +97,9 @@ async def fact_check(request: FactCheckRequest):
                 confidence=0.0
             )
         
-        # Step 1: Extract the core claim
-        claim = await extract_claim(tweet_text)
-        
-        if not claim or claim.lower() == "no verifiable claim":
-            return FactCheckResponse(
-                label="Unverifiable",
-                explanation="This tweet does not contain a verifiable factual claim.",
-                sources=[],
-                confidence=0.0
-            )
-        
-        # Step 2: Search for sources
-        search_results = await search_claim(claim)
+        # Skip claim extraction - search directly with tweet text
+        print(f"Searching for: {tweet_text[:100]}...")
+        search_results = await search_claim(tweet_text)
         
         if not search_results:
             return FactCheckResponse(
@@ -120,8 +109,8 @@ async def fact_check(request: FactCheckRequest):
                 confidence=0.0
             )
         
-        # Step 3: Synthesize the fact-check
-        result = await synthesize_fact_check(claim, tweet_text, search_results)
+        # Synthesize the fact-check
+        result = await synthesize_fact_check(tweet_text, tweet_text, search_results)
         
         return result
         

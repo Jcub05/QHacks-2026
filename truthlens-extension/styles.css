@@ -79,18 +79,19 @@
 
 /* Overlay styling */
 .truthlens-overlay {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
   background: white;
   border: 1px solid rgb(239, 243, 244);
   border-radius: 16px;
-  margin-top: 8px;
+  margin-top: 12px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: 10000 !important;
   animation: truthlens-fadein 0.2s ease-in;
+  display: block !important;
+  pointer-events: auto !important;
+  cursor: default;
 }
 
 @keyframes truthlens-fadein {
