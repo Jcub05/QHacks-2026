@@ -1,7 +1,6 @@
 // TruthLens Content Script - Injects fact-check icons into X (Twitter)
 
 const API_ENDPOINT = 'http://localhost:8000/api/fact-check';
-const PROCESSED_TWEETS = new Set();
 
 // SVG icon for the magnifying glass
 const MAGNIFY_ICON = `
@@ -67,16 +66,10 @@ function init() {
 
 // Find all tweets and inject the magnifying glass icon
 function injectFactCheckIcons() {
-  // Find all tweet articles that haven't been processed
+  // Find all tweet articles
   const tweets = document.querySelectorAll('article[data-testid="tweet"]');
   
   tweets.forEach((tweet) => {
-    // Use a unique identifier to avoid duplicate processing
-    const tweetId = getTweetId(tweet);
-    if (!tweetId || PROCESSED_TWEETS.has(tweetId)) {
-      return;
-    }
-
     // Find the action bar (reply, retweet, like buttons)
     const actionBar = tweet.querySelector('[role="group"]');
     if (!actionBar) {
@@ -88,11 +81,12 @@ function injectFactCheckIcons() {
       return;
     }
 
+    // Get tweet ID for reference (optional)
+    const tweetId = getTweetId(tweet);
+
     // Create and inject the magnifying glass button
     const factCheckButton = createFactCheckButton(tweet, tweetId);
     actionBar.appendChild(factCheckButton);
-    
-    PROCESSED_TWEETS.add(tweetId);
   });
 }
 
