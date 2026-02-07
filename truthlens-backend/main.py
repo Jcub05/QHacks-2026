@@ -2,12 +2,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
-from exa_py import Exa
+import requests
 import os
 from typing import List, Optional
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,18 +29,18 @@ app.add_middleware(
 
 # Initialize API clients
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-EXA_API_KEY = os.getenv("EXA_API_KEY")
+BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
 
-if not GEMINI_API_KEY or not EXA_API_KEY:
-    raise ValueError("Missing API keys. Set GEMINI_API_KEY and EXA_API_KEY environment variables.")
+if not GEMINI_API_KEY or not BRAVE_API_KEY:
+    raise ValueError("Missing API keys. Set GEMINI_API_KEY and BRAVE_API_KEY environment variables.")
 
 print("✓ API keys loaded")
 
 genai.configure(api_key=GEMINI_API_KEY)
 print("✓ Gemini configured")
 
-exa_client = Exa(api_key=EXA_API_KEY)
-print("✓ Exa client initialized")
+brave_api_key = BRAVE_API_KEY
+print("✓ Brave API key loaded")
 
 # Create Gemini model instance
 model = genai.GenerativeModel('gemini-3-flash-preview')
@@ -100,7 +101,10 @@ async def fact_check(request: FactCheckRequest):
         
         # Skip claim extraction - search directly with tweet text
         print(f"Searching for: {tweet_text[:100]}...")
+        search_start = time.time()
         search_results = await search_claim(tweet_text)
+        search_time = time.time() - search_start
+        print(f"⏱️  Exa search took: {search_time:.2f}s")
         
         if not search_results:
             return FactCheckResponse(
@@ -111,7 +115,11 @@ async def fact_check(request: FactCheckRequest):
             )
         
         # Synthesize the fact-check
+        synthesis_start = time.time()
         result = await synthesize_fact_check(tweet_text, tweet_text, search_results)
+        synthesis_time = time.time() - synthesis_start
+        print(f"⏱️  Gemini synthesis took: {synthesis_time:.2f}s")
+        print(f"⏱️  Total time: {search_time + synthesis_time:.2f}s")
         
         return result
         
@@ -147,45 +155,68 @@ Claim (max 2 sentences):
 
 async def search_claim(claim: str) -> List[dict]:
     """
-    Search for sources using Exa API with optimized parameters for fact-checking.
+    Search for sources using Brave Search API for fact-checking.
     """
     try:
-        loop = asyncio.get_event_loop()
-        search_response = await loop.run_in_executor(
-            executor,
-            lambda: exa_client.search_and_contents(
-                query=claim,
-                num_results=3,
-                use_autoprompt=True,  # Exa optimizes the query
-                type="keyword",  # Use keyword search for factual queries
-                text={
-                    "max_characters": 800,  # More context
-                    "include_html_tags": False
-                },
-                highlights={
-                    "num_sentences": 3,  # Get most relevant sentences
-                    "highlights_per_url": 1
-                },
-                # Expanded trusted domains beyond original 7
-                include_domains=[
-                    "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk",
-                    "snopes.com", "factcheck.org", "politifact.com", 
-                    "npr.org", "theguardian.com", "nytimes.com",
-                    "washingtonpost.com", "cnn.com", "nbcnews.com"
-                ]
-            )
-        )
+        # Brave Search Web Search API
+        url = "https://api.search.brave.com/res/v1/web/search"
+        headers = {
+            "Accept": "application/json",
+            "X-Subscription-Token": brave_api_key
+        }
+        params = {
+            "q": claim,
+            "count": 5,  # Get more results to filter
+            "freshness": "pw",  # Past week for recent fact-checks
+        }
         
-        # Convert Exa response format to match expected format
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            executor,
+            lambda: requests.get(url, headers=headers, params=params, timeout=10)
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        # Trusted domains for filtering
+        trusted_domains = [
+            "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk",
+            "snopes.com", "factcheck.org", "politifact.com", 
+            "npr.org", "theguardian.com", "nytimes.com",
+            "washingtonpost.com", "cnn.com", "nbcnews.com"
+        ]
+        
+        # Parse and filter results
         results = []
-        for result in search_response.results:
-            results.append({
-                "title": result.title,
-                "url": result.url,
-                "content": result.text if hasattr(result, 'text') else "",
-                "published_date": result.published_date if hasattr(result, 'published_date') else None
-            })
-        return results
+        if "web" in data and "results" in data["web"]:
+            for result in data["web"]["results"]:
+                # Filter for trusted domains
+                url_lower = result.get("url", "").lower()
+                if any(domain in url_lower for domain in trusted_domains):
+                    results.append({
+                        "title": result.get("title", "N/A"),
+                        "url": result.get("url", ""),
+                        "content": result.get("description", ""),
+                        "published_date": result.get("age", None)
+                    })
+                    if len(results) >= 3:
+                        break
+            
+            # If we don't have 3 trusted sources, add more general results
+            if len(results) < 3:
+                for result in data["web"]["results"]:
+                    url_lower = result.get("url", "").lower()
+                    if not any(domain in url_lower for domain in trusted_domains):
+                        results.append({
+                            "title": result.get("title", "N/A"),
+                            "url": result.get("url", ""),
+                            "content": result.get("description", ""),
+                            "published_date": result.get("age", None)
+                        })
+                        if len(results) >= 3:
+                            break
+        
+        return results[:3]  # Return top 3
     except Exception as e:
         print(f"Error searching claim: {str(e)}")
         return []
@@ -232,9 +263,20 @@ CONFIDENCE: [0.0-1.0]
         
         for line in lines:
             if line.startswith("LABEL:"):
-                label = line.replace("LABEL:", "").strip().title()
+                label_raw = line.replace("LABEL:", "").strip().upper()
+                # Map to consistent format
+                if "TRUE" in label_raw and "FALSE" not in label_raw:
+                    label = "True"
+                elif "FALSE" in label_raw:
+                    label = "False"
+                elif "MISLEADING" in label_raw:
+                    label = "Misleading"
+                else:
+                    label = "Unverifiable"
             elif line.startswith("EXPLANATION:"):
                 explanation = line.replace("EXPLANATION:", "").strip()
+                # Remove markdown formatting
+                explanation = explanation.replace("**", "").replace("__", "").replace("*", "").replace("_", "")
             elif line.startswith("CONFIDENCE:"):
                 try:
                     confidence = float(line.replace("CONFIDENCE:", "").strip())
