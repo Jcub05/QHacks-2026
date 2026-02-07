@@ -11,9 +11,11 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+print("✓ Environment variables loaded")
 
 # Initialize FastAPI app
 app = FastAPI(title="TruthLens API", version="1.0.0")
+print("✓ FastAPI app initialized")
 
 # Configure CORS for Chrome Extension
 app.add_middleware(
@@ -31,11 +33,17 @@ EXA_API_KEY = os.getenv("EXA_API_KEY")
 if not GEMINI_API_KEY or not EXA_API_KEY:
     raise ValueError("Missing API keys. Set GEMINI_API_KEY and EXA_API_KEY environment variables.")
 
+print("✓ API keys loaded")
+
 genai.configure(api_key=GEMINI_API_KEY)
+print("✓ Gemini configured")
+
 exa_client = Exa(api_key=EXA_API_KEY)
+print("✓ Exa client initialized")
 
 # Create Gemini model instance
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-3-flash-preview')
+print("✓ Gemini model configured")
 
 # Thread pool for async operations
 executor = ThreadPoolExecutor(max_workers=5)
@@ -127,12 +135,11 @@ async def extract_claim(tweet_text: str) -> str:
     Use Gemini to extract the core factual claim from a tweet.
     """
     prompt = f"""
-You are a fact-checking assistant. Extract the main verifiable factual claim from this tweet.
-If the tweet contains no verifiable facts (only opinions, questions, or jokes), respond with "No verifiable claim".
+Extract the main verifiable claim from this tweet. If no verifiable claim exists, respond "No verifiable claim".
 
 Tweet: "{tweet_text}"
 
-Respond with ONLY the extracted claim or "No verifiable claim". Be concise (max 2 sentences).
+Claim (max 2 sentences):
 """
     
     try:
@@ -158,9 +165,9 @@ async def search_claim(claim: str) -> List[dict]:
             executor,
             lambda: exa_client.search_and_contents(
                 query=claim,
-                num_results=5,
+                num_results=3,
                 use_autoprompt=True,
-                text={"max_characters": 1000},
+                text={"max_characters": 500},
                 include_domains=["reuters.com", "apnews.com", "bbc.com", "snopes.com", 
                                 "factcheck.org", "politifact.com", "npr.org"]
             )
@@ -191,30 +198,17 @@ async def synthesize_fact_check(claim: str, original_tweet: str, search_results:
     ])
     
     prompt = f"""
-You are a professional fact-checker. Analyze the following claim and sources to determine if it's true, false, misleading, or unverifiable.
+Analyze this claim against these sources. Determine: TRUE, FALSE, MISLEADING, or UNVERIFIABLE.
 
-Original Tweet: "{original_tweet}"
-Extracted Claim: "{claim}"
+Claim: "{claim}"
 
 Sources:
 {sources_text}
 
-Based on these sources, provide:
-1. A label: TRUE, FALSE, MISLEADING, or UNVERIFIABLE
-2. A brief 1-2 sentence explanation
-3. A confidence score from 0.0 to 1.0
-
-Respond in this exact format:
-LABEL: [your label]
-EXPLANATION: [your explanation]
+Format:
+LABEL: [TRUE/FALSE/MISLEADING/UNVERIFIABLE]
+EXPLANATION: [1-2 sentences]
 CONFIDENCE: [0.0-1.0]
-
-Guidelines:
-- TRUE: The claim is accurate and supported by multiple reliable sources
-- FALSE: The claim is demonstrably incorrect according to reliable sources
-- MISLEADING: The claim contains some truth but lacks important context or is presented deceptively
-- UNVERIFIABLE: Insufficient evidence to make a determination
-- Be objective and cite specific information from the sources
 """
     
     try:

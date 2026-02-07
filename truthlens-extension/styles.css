@@ -29,6 +29,40 @@
   fill: rgb(29, 155, 240);
 }
 
+/* Status icon colors */
+.truthlens-true .truthlens-icon-check {
+  fill: rgb(0, 186, 124) !important;
+}
+
+.truthlens-false .truthlens-icon-false {
+  fill: rgb(249, 24, 128) !important;
+}
+
+.truthlens-misleading .truthlens-icon-warning {
+  fill: rgb(255, 212, 0) !important;
+}
+
+.truthlens-unverifiable .truthlens-icon-question {
+  fill: rgb(113, 118, 123) !important;
+}
+
+/* Keep status colors on hover */
+.truthlens-true:hover .truthlens-icon-check {
+  fill: rgb(0, 186, 124) !important;
+}
+
+.truthlens-false:hover .truthlens-icon-false {
+  fill: rgb(249, 24, 128) !important;
+}
+
+.truthlens-misleading:hover .truthlens-icon-warning {
+  fill: rgb(255, 212, 0) !important;
+}
+
+.truthlens-unverifiable:hover .truthlens-icon-question {
+  fill: rgb(113, 118, 123) !important;
+}
+
 /* Loading state */
 .truthlens-loading .truthlens-icon {
   animation: truthlens-spin 1s linear infinite;

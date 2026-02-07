@@ -12,6 +12,39 @@ const MAGNIFY_ICON = `
 </svg>
 `;
 
+// Status icons
+const CHECK_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon truthlens-icon-check">
+  <g>
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+  </g>
+</svg>
+`;
+
+const WARNING_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon truthlens-icon-warning">
+  <g>
+    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path>
+  </g>
+</svg>
+`;
+
+const QUESTION_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon truthlens-icon-question">
+  <g>
+    <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14C9.79 6 8 7.79 8 10h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"></path>
+  </g>
+</svg>
+`;
+
+const X_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon truthlens-icon-false">
+  <g>
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+  </g>
+</svg>
+`;
+
 // Main initialization
 function init() {
   console.log('TruthLens: Initializing...');
@@ -90,45 +123,101 @@ function createFactCheckButton(tweet, tweetId) {
   button.innerHTML = MAGNIFY_ICON;
   button.title = 'Fact-check this tweet';
   
+  let factCheckResult = null;
+  let isChecked = false;
+  
   button.addEventListener('click', async (e) => {
     e.stopPropagation();
     e.preventDefault();
+    
+    // If already checked, show the full overlay
+    if (isChecked && factCheckResult) {
+      console.log('TruthLens: Showing full details', factCheckResult);
+      
+      // Remove any existing overlay first
+      const existingOverlay = tweet.querySelector('.truthlens-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+        return; // If clicking to close, just return
+      }
+      
+      showFactCheckResult(tweet, factCheckResult);
+      return;
+    }
+    
+    console.log('TruthLens: Button clicked!');
     
     // Show loading state
     button.classList.add('truthlens-loading');
     
     // Extract tweet text
     const tweetText = extractTweetText(tweet);
+    console.log('TruthLens: Extracted text:', tweetText);
     
     if (!tweetText) {
-      showFactCheckResult(tweet, {
+      console.log('TruthLens: No text found');
+      factCheckResult = {
         label: 'Unverifiable',
         explanation: 'This tweet contains no text to fact-check.',
         sources: [],
         confidence: 0
-      });
+      };
       button.classList.remove('truthlens-loading');
+      updateButtonIcon(button, factCheckResult.label);
+      isChecked = true;
       return;
     }
     
     try {
+      console.log('TruthLens: Calling API...');
       // Call the backend API
       const result = await factCheckTweet(tweetText);
-      showFactCheckResult(tweet, result);
+      console.log('TruthLens: Got result:', result);
+      factCheckResult = result;
+      updateButtonIcon(button, result.label);
+      isChecked = true;
     } catch (error) {
       console.error('TruthLens error:', error);
-      showFactCheckResult(tweet, {
+      factCheckResult = {
         label: 'Error',
         explanation: 'Unable to fact-check at this time. Please try again.',
         sources: [],
         confidence: 0
-      });
+      };
+      updateButtonIcon(button, 'Error');
+      isChecked = true;
     } finally {
       button.classList.remove('truthlens-loading');
     }
   });
   
   return button;
+}
+
+// Update button icon based on result
+function updateButtonIcon(button, label) {
+  button.classList.remove('truthlens-loading');
+  button.classList.add('truthlens-checked');
+  
+  const normalizedLabel = label.toLowerCase();
+  
+  if (normalizedLabel === 'true') {
+    button.innerHTML = CHECK_ICON;
+    button.title = 'True - Click for details';
+    button.classList.add('truthlens-true');
+  } else if (normalizedLabel === 'false') {
+    button.innerHTML = X_ICON;
+    button.title = 'False - Click for details';
+    button.classList.add('truthlens-false');
+  } else if (normalizedLabel === 'misleading') {
+    button.innerHTML = WARNING_ICON;
+    button.title = 'Misleading - Click for details';
+    button.classList.add('truthlens-misleading');
+  } else {
+    button.innerHTML = QUESTION_ICON;
+    button.title = 'Unverifiable - Click for details';
+    button.classList.add('truthlens-unverifiable');
+  }
 }
 
 // Extract tweet text from the tweet element
@@ -143,6 +232,9 @@ function extractTweetText(tweet) {
 
 // Call the backend API to fact-check
 async function factCheckTweet(text) {
+  console.log('TruthLens: Fetching from:', API_ENDPOINT);
+  console.log('TruthLens: Request body:', { text });
+  
   const response = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -151,11 +243,15 @@ async function factCheckTweet(text) {
     body: JSON.stringify({ text })
   });
   
+  console.log('TruthLens: Response status:', response.status);
+  
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }
   
-  return await response.json();
+  const data = await response.json();
+  console.log('TruthLens: Response data:', data);
+  return data;
 }
 
 // Show the fact-check result overlay
