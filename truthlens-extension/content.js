@@ -278,7 +278,8 @@ function showFactCheckResult(tweet, result) {
   if (result.sources && result.sources.length > 0) {
     sourcesHTML = '<div class="truthlens-sources">';
     result.sources.forEach(source => {
-      const dateStr = source.published_date ? `<span class="truthlens-date">${new Date(source.published_date).toLocaleDateString()}</span> ` : '';
+      // Brave returns age as text like "2 days ago", so display it as-is
+      const dateStr = source.published_date ? `<span class="truthlens-date">${source.published_date}</span> ` : '';
       sourcesHTML += `<div class="truthlens-source-item">${dateStr}<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="truthlens-source-link">${source.title || source.url}</a></div>`;
     });
     sourcesHTML += '</div>';
