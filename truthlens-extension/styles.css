@@ -203,6 +203,11 @@
   color: rgb(15, 20, 25);
 }
 
+.truthlens-bias {
+  font-size: 14px;
+  font-weight: 700;
+}
+
 @media (prefers-color-scheme: dark) {
   .truthlens-explanation {
     color: rgb(231, 233, 234);

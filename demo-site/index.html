@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthLens Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <span class="logo">
+                    <svg viewBox="0 0 24 24"><g><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path></g></svg>
+                </span>
+                TruthLens Demo
+            </h1>
+            <p>TruthLens is a browser extension that helps you evaluate the credibility of information on social media. It uses a powerful AI to analyze posts and provide context, so you can make more informed judgments.</p>
+            <div class="instructions">
+                <strong>How it works:</strong>
+                <ol>
+                    <li>Browse your feed as usual.</li>
+                    <li>Click the "Fact-Check" button on any post.</li>
+                    <li>Review the AI-generated analysis and sources.</li>
+                </ol>
+            </div>
+        </header>
+
+        <main class="feed">
+            <div id="post-1" class="tweet-card">
+                <blockquote class="twitter-tweet" data-theme="dark">
+                    <p lang="en" dir="ltr">A new photo of SZA has been released. <a href="https://t.co/wW0s3o2X3Y">pic.twitter.com/wW0s3o2X3Y</a></p>
+                    &mdash; Pop Base (@PopBase) <a href="https://twitter.com/PopBase/status/1792949430334759245">May 21, 2024</a>
+                </blockquote>
+                <div class="fact-check-area">
+                    <button class="fact-check-button" data-post-id="post-1">
+                        <span class="icon"><svg viewBox="0 0 24 24"><g><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path></g></svg></span>
+                        Fact-Check
+                    </button>
+                </div>
+            </div>
+
+            <div id="post-2" class="tweet-card">
+                <blockquote class="twitter-tweet" data-theme="dark">
+                    <p lang="en" dir="ltr">BREAKING: The Los Angeles Lakers are hiring JJ Redick as their next head coach, per <a href="https://twitter.com/wojespn?ref_src=twsrc%5Etfw">@wojespn</a> <a href="https://t.co/53r6a2B11c">pic.twitter.com/53r6a2B11c</a></p>
+                    &mdash; Fadeaway World (@FadeawayWorld) <a href="https://twitter.com/FadeawayWorld/status/1793003061139443936">May 21, 2024</a>
+                </blockquote>
+                 <div class="fact-check-area">
+                    <button class="fact-check-button" data-post-id="post-2">
+                        <span class="icon"><svg viewBox="0 0 24 24"><g><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path></g></svg></span>
+                        Fact-Check
+                    </button>
+                </div>
+            </div>
+
+             <div id="post-3" class="tweet-card">
+                <blockquote class="twitter-tweet" data-theme="dark">
+                    <p lang="en" dir="ltr">Apple is expected to announce a partnership with OpenAI to integrate ChatGPT into iOS 18 at WWDC. <a href="https://t.co/p3wA5R451A">pic.twitter.com/p3wA5R451A</a></p>
+                    &mdash; Mario Bojic (@MarioBojic) <a href="https://twitter.com/MarioBojic/status/1792997602332442985">May 21, 2024</a>
+                </blockquote>
+                 <div class="fact-check-area">
+                    <button class="fact-check-button" data-post-id="post-3">
+                        <span class="icon"><svg viewBox="0 0 24 24"><g><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path></g></svg></span>
+                        Fact-Check
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
