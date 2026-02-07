@@ -66,6 +66,31 @@ function init() {
 
     // Initial injection
     injectFactCheckIcons();
+    
+    // Re-inject when URL changes (for SPA navigation)
+    let lastUrl = location.href;
+    new MutationObserver(() => {
+      const url = location.href;
+      if (url !== lastUrl) {
+        console.log('TruthLens: URL changed, re-injecting icons');
+        lastUrl = url;
+        // Delay to allow Twitter to render new content
+        setTimeout(() => injectFactCheckIcons(), 500);
+        setTimeout(() => injectFactCheckIcons(), 1000);
+      }
+    }).observe(document, { subtree: true, childList: true });
+    
+    // Also listen for browser back/forward
+    window.addEventListener('popstate', () => {
+      console.log('TruthLens: Navigation detected (popstate), re-injecting icons');
+      setTimeout(() => injectFactCheckIcons(), 500);
+      setTimeout(() => injectFactCheckIcons(), 1000);
+    });
+    
+    // Periodic check to re-inject icons if they disappear (fallback safety net)
+    setInterval(() => {
+      injectFactCheckIcons();
+    }, 3000); // Check every 3 seconds
   }
   
   // Listen for messages from background script (Context Menu)
@@ -101,7 +126,21 @@ function injectFactCheckIcons() {
     }
 
     // Check if we already injected our icon
-    if (actionBar.querySelector('.truthlens-button')) {
+    // Be more defensive - check both in actionBar and as direct child
+    const existingButton = actionBar.querySelector('.truthlens-button');
+    
+    // Verify the button is actually in the DOM and attached
+    if (existingButton && existingButton.isConnected) {
+      return;
+    }
+    
+    // If button exists but is disconnected, remove the marker
+    if (tweet.hasAttribute('data-truthlens-processed') && !existingButton) {
+      tweet.removeAttribute('data-truthlens-processed');
+    }
+    
+    // Skip if already processed and button exists
+    if (tweet.hasAttribute('data-truthlens-processed') && existingButton) {
       return;
     }
 
@@ -110,6 +149,10 @@ function injectFactCheckIcons() {
 
     // Create and inject the magnifying glass button
     const factCheckButton = createFactCheckButton(tweet, tweetId);
+    
+    // Mark the tweet as processed to avoid re-injection
+    tweet.setAttribute('data-truthlens-processed', 'true');
+    
     actionBar.appendChild(factCheckButton);
   });
 }
@@ -321,7 +364,7 @@ function showFactCheckResult(tweet, result) {
   if (images.length > 0 && !hasVideo) {
     // Always show single button initially
     console.log('TruthLens: Adding media check button for', images.length, 'image(s)');
-    mediaCheckHTML = '<button class="truthlens-media-check-btn" data-image-count="' + images.length + '">🖼️ Check Image AI</button><div class="truthlens-media-result"></div>';
+    mediaCheckHTML = '<button class="truthlens-media-check-btn" data-image-count="' + images.length + '">🖼️ Check if image is AI</button><div class="truthlens-media-result"></div>';
   } else if (hasVideo) {
     console.log('TruthLens: Video detected - NOT adding media check button');
   }
