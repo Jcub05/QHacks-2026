@@ -5,24 +5,49 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34.75px;
-  height: 34.75px;
+  min-width: 38px;
+  min-height: 38px;
+  width: 38px;
+  height: 38px;
   margin: 0;
-  padding: 8px;
+  padding: 0;
   border-radius: 9999px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: static;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  vertical-align: middle;
+  align-self: center;
+  animation: truthlens-button-appear 0.3s ease-out;
 }
 
 .truthlens-button:hover {
   background-color: rgba(29, 155, 240, 0.1);
+  transform: scale(1.05);
+}
+
+.truthlens-button:active {
+  transform: scale(0.95);
 }
 
 .truthlens-icon {
   width: 18.75px;
   height: 18.75px;
   fill: rgb(113, 118, 123);
+  flex-shrink: 0;
+  transition: fill 0.2s ease;
+}
+
+@keyframes truthlens-button-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .truthlens-button:hover .truthlens-icon {
@@ -88,20 +113,23 @@
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10000 !important;
-  animation: truthlens-fadein 0.2s ease-in;
+  animation: truthlens-dropdown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   display: block !important;
   pointer-events: auto !important;
   cursor: default;
+  transform-origin: top center;
 }
 
-@keyframes truthlens-fadein {
+@keyframes truthlens-dropdown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px) scale(0.95);
+    max-height: 0;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    max-height: 2000px;
   }
 }
 
@@ -331,11 +359,30 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: truthlens-button-slide-in 0.3s ease-out;
 }
 
 .truthlens-media-check-btn:hover {
   background: rgb(26, 140, 216);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
+}
+
+.truthlens-media-check-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(29, 155, 240, 0.2);
+}
+
+@keyframes truthlens-button-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .truthlens-media-check-btn-small {
