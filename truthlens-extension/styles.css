@@ -249,6 +249,72 @@
   font-style: italic;
 }
 
+/* Fixed Overlay for Highlight Verification */
+.truthlens-fixed-overlay {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 350px !important;
+  max-width: 90vw !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  z-index: 2147483647 !important; /* Max z-index */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Spinner for generic loading */
+.truthlens-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-left-color: currentColor;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: truthlens-spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+/* Floating Action Button */
+.truthlens-fab {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: #1d9bf0;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  animation: truthlens-pop-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.truthlens-fab svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+.truthlens-fab:hover {
+  transform: scale(1.1);
+  background: #1a8cd8;
+}
+
+@keyframes truthlens-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Media check button */
 .truthlens-media-check-btn {
   margin-top: 12px;

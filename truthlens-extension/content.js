@@ -48,20 +48,44 @@ const X_ICON = `
 function init() {
   console.log('TruthLens: Initializing...');
   
-  // Watch for new tweets being loaded (X is an SPA)
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach(() => {
-      injectFactCheckIcons();
+  // Check if we are on X/Twitter
+  const isTwitter = window.location.hostname.includes('twitter.com') || window.location.hostname.includes('x.com');
+  
+  if (isTwitter) {
+    // Watch for new tweets being loaded (X is an SPA)
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(() => {
+        injectFactCheckIcons();
+      });
     });
-  });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
-  // Initial injection
-  injectFactCheckIcons();
+    // Initial injection
+    injectFactCheckIcons();
+  }
+  
+  // Listen for messages from background script (Context Menu)
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "verify_selection") {
+      console.log("TruthLens: Verifying selection:", request.text);
+      handleSelectionVerification(request.text);
+    }
+  });
+  
+  // Listen for text selection (Floating Action Button)
+  document.addEventListener('mouseup', handleTextSelection);
+  document.addEventListener('keyup', handleTextSelection);
+  
+  // Close FAB on click outside
+  document.addEventListener('mousedown', (e) => {
+    if (!e.target.classList.contains('truthlens-fab') && !e.target.closest('.truthlens-fab')) {
+      removeFloatingButton();
+    }
+  });
 }
 
 // Find all tweets and inject the magnifying glass icon
@@ -389,6 +413,165 @@ function showFactCheckResult(tweet, result) {
   
   console.log('TruthLens: Overlay appended', overlay);
   console.log('TruthLens: Overlay visible?', overlay.offsetHeight > 0);
+}
+
+// Handle selection verification from context menu
+async function handleSelectionVerification(text) {
+  // Show loading overlay
+  showGenericOverlay({
+    label: "Analyzing...",
+    explanation: "Verifying your selected text with TruthLens...",
+    sources: [],
+    isLoading: true
+  });
+  
+  try {
+    const result = await factCheckTweet(text); // Reuse existing API function
+    showGenericOverlay(result);
+  } catch (error) {
+    console.error("TruthLens error:", error);
+    showGenericOverlay({
+      label: "Error",
+      explanation: "Unable to verify text. Please try again.",
+      sources: [],
+      error: true
+    });
+  }
+}
+
+// Show validation result for generic text selection (Fixed Bottom-Right)
+function showGenericOverlay(result) {
+  // Remove existing overlay
+  const existing = document.getElementById('truthlens-generic-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'truthlens-generic-overlay';
+  overlay.className = 'truthlens-overlay truthlens-fixed-overlay';
+  
+  // Determine styling
+  let labelClass = 'neutral';
+  let labelText = result.label || '...';
+  
+  if (result.isLoading) {
+    labelClass = 'loading';
+  } else if (result.error) {
+    labelClass = 'error';
+  } else if (result.label) {
+    labelClass = result.label.toLowerCase().replace(/\s+/g, '-');
+  }
+  
+  // Build sources HTML
+  let sourcesHTML = '';
+  if (result.sources && result.sources.length > 0) {
+    sourcesHTML = '<div class="truthlens-sources">';
+    result.sources.forEach(source => {
+      const dateStr = source.published_date ? `<span class="truthlens-date">${source.published_date}</span> ` : '';
+      sourcesHTML += `<div class="truthlens-source-item">${dateStr}<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="truthlens-source-link">${source.title || source.url}</a></div>`;
+    });
+    sourcesHTML += '</div>';
+  }
+  
+  // Bias warning
+  let biasHTML = '';
+  if (result.bias && result.bias.toLowerCase() !== 'none' && !result.isLoading) {
+    const biasLevel = result.bias.toLowerCase() === 'likely' ? 'Likely bias' : 'Potential bias';
+    biasHTML = `<div class="truthlens-bias">⚠️ ${biasLevel} detected</div>`;
+  }
+  
+  overlay.innerHTML = `
+    <div class="truthlens-header">
+      <span class="truthlens-label truthlens-label-${labelClass}">
+        ${result.isLoading ? '<span class="truthlens-spinner"></span> Analyzing' : labelText}
+      </span>
+      <button class="truthlens-close">×</button>
+    </div>
+    <div class="truthlens-body">
+      ${biasHTML}
+      <p class="truthlens-explanation">${result.explanation}</p>
+      ${sourcesHTML}
+    </div>
+  `;
+  
+  // Close handler
+  overlay.querySelector('.truthlens-close').addEventListener('click', () => {
+    overlay.remove();
+  });
+  
+  document.body.appendChild(overlay);
+}
+
+// Handle text selection for Floating Action Button
+function handleTextSelection(e) {
+  // Wait a brief moment for selection to complete
+  setTimeout(() => {
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+    
+    if (text.length < 5) {
+      removeFloatingButton();
+      return;
+    }
+    
+    // Don't show if we already have the button for this selection
+    const r1 = selection.getRangeAt(0).getBoundingClientRect();
+    const existingBtn = document.getElementById('truthlens-fab');
+    if (existingBtn && existingBtn.dataset.text === text) {
+      return;
+    }
+    
+    showFloatingButton(r1, text);
+  }, 10);
+}
+
+// Show Floating Action Button (FAB)
+function showFloatingButton(rect, text) {
+  removeFloatingButton();
+  
+  const btn = document.createElement('div');
+  btn.id = 'truthlens-fab';
+  btn.className = 'truthlens-fab';
+  btn.innerHTML = MAGNIFY_ICON;
+  btn.title = 'Verify with TruthLens';
+  btn.dataset.text = text;
+  
+  // Calculate position (centered above selection)
+  const btnHeight = 32;
+  const btnWidth = 32;
+  const gap = 10;
+  
+  // Absolute positioning relative to document
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  let top = rect.top + scrollTop - btnHeight - gap;
+  let left = rect.left + scrollLeft + (rect.width / 2) - (btnWidth / 2);
+  
+  // Adjust if going off screen
+  if (top < scrollTop) {
+    top = rect.bottom + scrollTop + gap; // Show below if no space above
+  }
+  
+  btn.style.top = `${top}px`;
+  btn.style.left = `${left}px`;
+  
+  // Animation styling is in CSS
+  
+  btn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSelectionVerification(text);
+    removeFloatingButton();
+    window.getSelection().removeAllRanges(); // Clear selection
+  });
+  
+  document.body.appendChild(btn);
+}
+
+// Remove Floating Action Button
+function removeFloatingButton() {
+  const btn = document.getElementById('truthlens-fab');
+  if (btn) btn.remove();
 }
 
 // Initialize when DOM is ready

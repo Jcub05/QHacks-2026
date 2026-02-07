@@ -5,17 +5,19 @@
   "description": "Real-time fact-checking for X (Twitter) posts",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "contextMenus"
   ],
   "host_permissions": [
-    "https://x.com/*",
-    "https://twitter.com/*"
+    "*://*/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
-        "https://x.com/*",
-        "https://twitter.com/*"
+        "<all_urls>"
       ],
       "js": ["content.js"],
       "css": ["styles.css"],
