@@ -25,16 +25,16 @@
     }
   ],
   "icons": {
-    "16": "icons/ForReal-logo-short 16.jpg",
-    "48": "icons/ForReal-logo-short 48.jpg",
-    "128": "icons/ForReal-logo-short 128.jpg"
+    "16": "icons/forreal-16.png",
+    "48": "icons/forreal-48.png",
+    "128": "icons/forreal-128.png"
   },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/ForReal-logo-short 16.jpg",
-      "48": "icons/ForReal-logo-short 48.jpg",
-      "128": "icons/ForReal-logo-short 128.jpg"
+      "16": "icons/forreal-16.png",
+      "48": "icons/forreal-48.png",
+      "128": "icons/forreal-128.png"
     }
   }
 }
