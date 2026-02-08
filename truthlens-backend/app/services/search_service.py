@@ -13,7 +13,7 @@ class SearchService:
     """Service for searching and retrieving fact-check sources."""
     
     # Blacklisted domains to exclude from results
-    BLACKLISTED_DOMAINS = ["wikipedia.org", "en.wikipedia.org"]
+    BLACKLISTED_DOMAINS = ["wikipedia.org", "en.wikipedia.org", "www.christianpost.com"]
     
     @staticmethod
     async def search_claim(claim: str) -> List[dict]:
