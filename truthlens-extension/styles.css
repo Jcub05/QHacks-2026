@@ -350,10 +350,11 @@
   position: absolute;
   width: 32px;
   height: 32px;
-  background: #1d9bf0;
+  background: rgb(21, 32, 43);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 2147483647;
   display: flex;
   align-items: center;
@@ -370,7 +371,8 @@
 
 .truthlens-fab:hover {
   transform: scale(1.1);
-  background: #1a8cd8;
+  background: rgb(38, 50, 62);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 @keyframes truthlens-pop-in {
