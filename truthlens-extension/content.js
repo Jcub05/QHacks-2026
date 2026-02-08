@@ -1,12 +1,22 @@
 // TruthLens Content Script - Injects fact-check icons into X (Twitter)
 
 const API_ENDPOINT = 'http://localhost:8000/api/fact-check';
+const TTS_ENDPOINT = 'http://localhost:8000/api/text-to-speech';
 
 // SVG icon for the magnifying glass
 const MAGNIFY_ICON = `
 <svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon">
   <g>
     <path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path>
+  </g>
+</svg>
+`;
+
+// Speaker icon for TTS
+const SPEAKER_ICON = `
+<svg viewBox="0 0 24 24" aria-hidden="true" class="truthlens-icon truthlens-icon-speaker">
+  <g>
+    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
   </g>
 </svg>
 `;
@@ -372,7 +382,12 @@ function showFactCheckResult(tweet, result) {
   overlay.innerHTML = `
     <div class="truthlens-header">
       <span class="truthlens-label truthlens-label-${labelClass}">${result.label}</span>
-      <button class="truthlens-close">×</button>
+      <div class="truthlens-header-buttons">
+        <button class="truthlens-speaker-btn" title="Listen to fact check">
+          ${SPEAKER_ICON}
+        </button>
+        <button class="truthlens-close">×</button>
+      </div>
     </div>
     <div class="truthlens-body">
       ${biasHTML}
@@ -406,6 +421,82 @@ function showFactCheckResult(tweet, result) {
     e.stopPropagation();
     e.preventDefault();
     overlay.remove();
+  });
+  
+  // Add speaker button functionality
+  const speakerButton = overlay.querySelector('.truthlens-speaker-btn');
+  let currentAudio = null; // Track current audio playback
+  
+  speakerButton.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // If audio is currently playing, stop it
+    if (currentAudio && !currentAudio.paused) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+      speakerButton.classList.remove('truthlens-speaker-playing');
+      return;
+    }
+    
+    try {
+      // Show loading state
+      speakerButton.classList.add('truthlens-speaker-loading');
+      
+      // Get the tweet text (claim)
+      const tweetText = extractTweetText(tweet);
+      
+      console.log('🔊 TTS: Requesting audio for fact check');
+      
+      // Call the TTS endpoint
+      const response = await fetch(TTS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          claim: tweetText,
+          result: result
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.status}`);
+      }
+      
+      // Get the audio blob
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Create and play audio
+      currentAudio = new Audio(audioUrl);
+      
+      speakerButton.classList.remove('truthlens-speaker-loading');
+      speakerButton.classList.add('truthlens-speaker-playing');
+      
+      currentAudio.onended = () => {
+        speakerButton.classList.remove('truthlens-speaker-playing');
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+      };
+      
+      currentAudio.onerror = () => {
+        console.error('🔊 TTS: Audio playback error');
+        speakerButton.classList.remove('truthlens-speaker-playing');
+        speakerButton.classList.remove('truthlens-speaker-loading');
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+      };
+      
+      await currentAudio.play();
+      console.log('🔊 TTS: Playing audio');
+      
+    } catch (error) {
+      console.error('🔊 TTS error:', error);
+      speakerButton.classList.remove('truthlens-speaker-loading');
+      alert('Unable to generate audio. Please check if ElevenLabs API is configured.');
+    }
   });
   
   // Add media check button functionality (for all buttons)
@@ -551,11 +642,11 @@ async function handleSelectionVerification(text) {
     explanation: `<span style="font-size: 17px;">Verifying your selected text with</span> <img src="${chrome.runtime.getURL('icons/ForReal-logo-long-blue-cropped.jpg')}" alt="ForReal" style="height: 17px; vertical-align: 0px; margin-left: 4px;">`,
     sources: [],
     isLoading: true
-  });
+  }, text);
   
   try {
     const result = await factCheckTweet(text); // Reuse existing API function
-    showGenericOverlay(result);
+    showGenericOverlay(result, text);
   } catch (error) {
     console.error("TruthLens error:", error);
     showGenericOverlay({
@@ -563,12 +654,12 @@ async function handleSelectionVerification(text) {
       explanation: "Unable to verify text. Please try again.",
       sources: [],
       error: true
-    });
+    }, text);
   }
 }
 
 // Show validation result for generic text selection (Fixed Bottom-Right)
-function showGenericOverlay(result) {
+function showGenericOverlay(result, claimText = null) {
   // Remove existing overlay
   const existing = document.getElementById('truthlens-generic-overlay');
   if (existing) existing.remove();
@@ -612,7 +703,14 @@ function showGenericOverlay(result) {
       <span class="truthlens-label truthlens-label-${labelClass}">
         ${result.isLoading ? '<span class="truthlens-spinner"></span> Analyzing' : labelText}
       </span>
-      <button class="truthlens-close">×</button>
+      <div class="truthlens-header-buttons">
+        ${claimText && !result.isLoading && !result.error ? `
+          <button class="truthlens-speaker-btn" title="Listen to fact check">
+            ${SPEAKER_ICON}
+          </button>
+        ` : ''}
+        <button class="truthlens-close">×</button>
+      </div>
     </div>
     <div class="truthlens-body">
       ${biasHTML}
@@ -625,6 +723,77 @@ function showGenericOverlay(result) {
   overlay.querySelector('.truthlens-close').addEventListener('click', () => {
     overlay.remove();
   });
+  
+  // Speaker button handler
+  const speakerButton = overlay.querySelector('.truthlens-speaker-btn');
+  if (speakerButton && claimText) {
+    let currentAudio = null;
+    
+    speakerButton.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      
+      // If audio is currently playing, stop it
+      if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+        speakerButton.classList.remove('truthlens-speaker-playing');
+        return;
+      }
+      
+      try {
+        speakerButton.classList.add('truthlens-speaker-loading');
+        
+        console.log('🔊 TTS: Requesting audio for generic fact check');
+        
+        const response = await fetch(TTS_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            claim: claimText,
+            result: result
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`TTS API error: ${response.status}`);
+        }
+        
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        currentAudio = new Audio(audioUrl);
+        
+        speakerButton.classList.remove('truthlens-speaker-loading');
+        speakerButton.classList.add('truthlens-speaker-playing');
+        
+        currentAudio.onended = () => {
+          speakerButton.classList.remove('truthlens-speaker-playing');
+          URL.revokeObjectURL(audioUrl);
+          currentAudio = null;
+        };
+        
+        currentAudio.onerror = () => {
+          console.error('🔊 TTS: Audio playback error');
+          speakerButton.classList.remove('truthlens-speaker-playing');
+          speakerButton.classList.remove('truthlens-speaker-loading');
+          URL.revokeObjectURL(audioUrl);
+          currentAudio = null;
+        };
+        
+        await currentAudio.play();
+        console.log('🔊 TTS: Playing audio');
+        
+      } catch (error) {
+        console.error('🔊 TTS error:', error);
+        speakerButton.classList.remove('truthlens-speaker-loading');
+        alert('Unable to generate audio. Please check if ElevenLabs API is configured.');
+      }
+    });
+  }
   
   document.body.appendChild(overlay);
 }

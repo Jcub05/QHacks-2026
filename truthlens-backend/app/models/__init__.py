@@ -2,7 +2,8 @@
 from app.models.fact_check import (
     FactCheckRequest,
     FactCheckResponse,
-    Source
+    Source,
+    TTSRequest
 )
 from app.models.media_check import (
     MediaCheckRequest,
@@ -13,6 +14,7 @@ __all__ = [
     "FactCheckRequest",
     "FactCheckResponse",
     "Source",
+    "TTSRequest",
     "MediaCheckRequest",
     "MediaCheckResponse"
 ]

@@ -8,6 +8,12 @@ class FactCheckRequest(BaseModel):
     text: str
 
 
+class TTSRequest(BaseModel):
+    """Request model for text-to-speech generation."""
+    claim: str
+    result: 'FactCheckResponse'
+
+
 class Source(BaseModel):
     """Source information for fact-check results."""
     title: str
@@ -23,3 +29,7 @@ class FactCheckResponse(BaseModel):
     sources: List[Source]
     confidence: float  # 0.0 to 1.0 (internal only)
     bias: Optional[str] = None  # None / Potential / Likely
+
+
+# Update forward references
+TTSRequest.model_rebuild()

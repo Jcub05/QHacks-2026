@@ -1,8 +1,9 @@
 """Fact-checking API routes."""
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 import time
-from app.models import FactCheckRequest, FactCheckResponse
-from app.services import FactCheckService, SearchService
+from app.models import FactCheckRequest, FactCheckResponse, TTSRequest
+from app.services import FactCheckService, SearchService, TTSService
 
 router = APIRouter(prefix="/api", tags=["fact-check"])
 
@@ -60,3 +61,36 @@ async def fact_check(request: FactCheckRequest):
     except Exception as e:
         print(f"Error in fact_check: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/text-to-speech")
+async def text_to_speech(request: TTSRequest):
+    """
+    Generate text-to-speech audio for a fact check result.
+    
+    This endpoint takes a claim and its fact check result, formats it into
+    a speech-friendly narrative, and returns MP3 audio data.
+    """
+    try:
+        print(f"🔊 TTS request for claim: {request.claim[:50]}...")
+        
+        # Generate the audio
+        audio_data = await TTSService.generate_fact_check_speech(
+            request.claim,
+            request.result
+        )
+        
+        print(f"✓ Generated {len(audio_data)} bytes of audio")
+        
+        # Return the audio as MP3
+        return Response(
+            content=audio_data,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=fact-check.mp3"
+            }
+        )
+        
+    except Exception as e:
+        print(f"Error in text_to_speech: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TTS error: {str(e)}")

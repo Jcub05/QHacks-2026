@@ -186,6 +186,12 @@
   margin-bottom: 12px;
 }
 
+.truthlens-header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* Label styling */
 .truthlens-label {
   display: inline-block;
@@ -220,6 +226,52 @@
 .truthlens-label-error {
   background-color: rgba(249, 24, 128, 0.15);
   color: rgb(249, 24, 128);
+}
+
+/* Speaker button */
+.truthlens-speaker-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.truthlens-speaker-btn .truthlens-icon-speaker {
+  width: 20px;
+  height: 20px;
+  fill: rgb(231, 233, 234);
+}
+
+.truthlens-speaker-btn:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  transform: scale(1.1);
+}
+
+.truthlens-speaker-btn.truthlens-speaker-loading .truthlens-icon-speaker {
+  animation: truthlens-pulse 1s infinite;
+}
+
+.truthlens-speaker-btn.truthlens-speaker-playing .truthlens-icon-speaker {
+  fill: rgb(0, 186, 124);
+  animation: truthlens-pulse 1.5s infinite;
+}
+
+@keyframes truthlens-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
 }
 
 /* Close button */
