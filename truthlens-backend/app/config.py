@@ -28,26 +28,16 @@ class Settings:
     ELEVENLABS_VOICE_ID: str = "21m00Tcm4TlvDq8ikWAM"  # Default voice: Rachel (neutral, clear)
     
     # Search Configuration
-    SEARCH_RESULT_COUNT: int = 20
+    SEARCH_RESULT_COUNT: int = 5
     SEARCH_FRESHNESS: str = "pw"  # Past week
     MAX_SOURCES: int = 3
     
     # Trusted Domains for Fact-Checking
     TRUSTED_DOMAINS: list = [
-        # News Agencies & Wire Services
-        "reuters.com", "apnews.com", "afp.com",
-        # Fact-Checking Organizations
-        "snopes.com", "factcheck.org", "politifact.com", "fullfact.org",
-        # International News
-        "bbc.com", "bbc.co.uk", "theguardian.com", "aljazeera.com", "dw.com",
-        # US National News
-        "npr.org", "pbs.org", "cbsnews.com", "nbcnews.com", "abcnews.go.com",
-        # Major Newspapers
-        "nytimes.com", "washingtonpost.com", "usatoday.com", "latimes.com",
-        # Business/Financial News
-        "bloomberg.com", "wsj.com", "cnbc.com",
-        # Science/Medical
-        "nature.com", "sciencemag.org", "nejm.org"
+        "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk",
+        "snopes.com", "factcheck.org", "politifact.com", 
+        "npr.org", "theguardian.com", "nytimes.com",
+        "washingtonpost.com", "cnn.com", "nbcnews.com"
     ]
     
     # Server Configuration

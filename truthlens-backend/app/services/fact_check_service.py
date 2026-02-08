@@ -91,10 +91,10 @@ Return ONLY the extracted claim text, nothing else.
         Returns:
             FactCheckResponse with label, explanation, sources, confidence, bias
         """
-        # Format search results for the prompt (use up to 8 for analysis)
+        # Format search results for the prompt
         sources_text = "\n\n".join([
             f"Source {i+1}:\nTitle: {result.get('title', 'N/A')}\nURL: {result.get('url', 'N/A')}\nContent: {result.get('content', 'N/A')[:1000]}"
-            for i, result in enumerate(search_results[:8])
+            for i, result in enumerate(search_results[:5])
         ])
         
         prompt = f"""
@@ -118,8 +118,7 @@ TASK: Verify the CLAIM against the provided SEARCH_EVIDENCE.
    - FALSE: Contradicted by primary sources.
    - MISLEADING: Grain of truth but significant omission/bias.
    - UNVERIFIABLE: Claim entities not found in sources.
-3. SELECT TOP 3 SOURCES: From all provided sources, identify the 3 most relevant and credible sources that directly address the claim. Return only these 3 source numbers in your response.
-4. POLITICAL BIAS CHECK (for misleading/controversial claims only):
+3. POLITICAL BIAS CHECK (for misleading/controversial claims only):
    - Analyze ONLY the tweet content (not the sources)
    - Detect if the framing shows political bias or partisan slant
    - Do NOT label as left/right/center - only detect if bias exists
@@ -129,7 +128,6 @@ TASK: Verify the CLAIM against the provided SEARCH_EVIDENCE.
 <output_format>
 LABEL: [TRUE/FALSE/MISLEADING/UNVERIFIABLE]
 EXPLANATION: [Context + Source Name in < 20 words]
-SOURCES: [Comma-separated source numbers, e.g., "1,3,5"]
 BIAS: [None / Potential / Likely]
 CONFIDENCE: [0.0 - 1.0]
 </output_format>
@@ -153,7 +151,6 @@ CONFIDENCE: [0.0 - 1.0]
             explanation = "Unable to determine accuracy."
             confidence = 0.5
             bias = None
-            selected_source_indices = []
             
             for line in lines:
                 if line.startswith("LABEL:"):
@@ -171,13 +168,6 @@ CONFIDENCE: [0.0 - 1.0]
                     explanation = line.replace("EXPLANATION:", "").strip()
                     # Remove markdown formatting
                     explanation = explanation.replace("**", "").replace("__", "").replace("*", "").replace("_", "")
-                elif line.startswith("SOURCES:"):
-                    sources_str = line.replace("SOURCES:", "").strip()
-                    try:
-                        # Parse comma-separated source numbers
-                        selected_source_indices = [int(s.strip()) - 1 for s in sources_str.split(",") if s.strip().isdigit()]
-                    except:
-                        selected_source_indices = []
                 elif line.startswith("BIAS:"):
                     bias = line.replace("BIAS:", "").strip()
                 elif line.startswith("CONFIDENCE:"):
@@ -186,30 +176,16 @@ CONFIDENCE: [0.0 - 1.0]
                     except:
                         confidence = 0.5
             
-            # Format sources - use Gemini's selected sources, or fallback to first 3
-            if selected_source_indices and len(selected_source_indices) > 0:
-                # Use only the sources Gemini selected
-                sources = []
-                for idx in selected_source_indices[:3]:  # Limit to top 3
-                    if 0 <= idx < len(search_results):
-                        result = search_results[idx]
-                        sources.append(Source(
-                            title=result.get("title", "Source"),
-                            url=result.get("url", ""),
-                            snippet=result.get("content", "")[:200],
-                            published_date=result.get("published_date")
-                        ))
-            else:
-                # Fallback to first 3 sources
-                sources = [
-                    Source(
-                        title=result.get("title", "Source"),
-                        url=result.get("url", ""),
-                        snippet=result.get("content", "")[:200],
-                        published_date=result.get("published_date")
-                    )
-                    for result in search_results[:settings.MAX_SOURCES]
-                ]
+            # Format sources
+            sources = [
+                Source(
+                    title=result.get("title", "Source"),
+                    url=result.get("url", ""),
+                    snippet=result.get("content", "")[:200],
+                    published_date=result.get("published_date")
+                )
+                for result in search_results[:settings.MAX_SOURCES]
+            ]
             
             return FactCheckResponse(
                 label=label,
