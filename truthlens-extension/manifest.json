@@ -19,8 +19,23 @@
       "matches": [
         "<all_urls>"
       ],
-      "js": ["content.js"],
-      "css": ["styles.css"],
+      "js": [
+        "src/config/constants.js",
+        "src/utils/dom-utils.js",
+        "src/utils/tweet-utils.js",
+        "src/utils/api-client.js",
+        "src/services/tts-service.js",
+        "src/services/fact-check-service.js",
+        "src/components/media-checker.js",
+        "src/components/overlay.js",
+        "src/components/fact-check-button.js",
+        "src/components/floating-button.js",
+        "src/services/injection-service.js",
+        "src/content.js"
+      ],
+      "css": [
+        "src/styles/main.css"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -43,7 +58,9 @@
         "icons/ForReal-logo-long.jpg",
         "icons/ForReal-logo-long-blue-cropped.jpg"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

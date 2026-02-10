@@ -1,0 +1,534 @@
+/* TruthLens Styles */
+
+/* Fact-check button styling */
+.truthlens-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  min-height: 38px;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: static;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  vertical-align: middle;
+  align-self: center;
+  animation: truthlens-button-appear 0.3s ease-out;
+}
+
+.truthlens-button:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  transform: scale(1.05);
+}
+
+.truthlens-button:active {
+  transform: scale(0.95);
+}
+
+.truthlens-icon {
+  width: 18.75px;
+  height: 18.75px;
+  fill: rgb(113, 118, 123);
+  flex-shrink: 0;
+  transition: fill 0.2s ease;
+}
+
+@keyframes truthlens-button-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.truthlens-button:hover .truthlens-icon {
+  fill: rgb(29, 155, 240);
+}
+
+/* Status icon colors */
+.truthlens-true .truthlens-icon-check {
+  fill: rgb(0, 186, 124) !important;
+}
+
+.truthlens-false .truthlens-icon-false {
+  fill: rgb(249, 24, 128) !important;
+}
+
+.truthlens-misleading .truthlens-icon-warning {
+  fill: rgb(255, 212, 0) !important;
+}
+
+.truthlens-unverifiable .truthlens-icon-question {
+  fill: rgb(29, 155, 240) !important;
+}
+
+/* Keep status colors on hover */
+.truthlens-true:hover .truthlens-icon-check {
+  fill: rgb(0, 186, 124) !important;
+}
+
+.truthlens-false:hover .truthlens-icon-false {
+  fill: rgb(249, 24, 128) !important;
+}
+
+.truthlens-misleading:hover .truthlens-icon-warning {
+  fill: rgb(255, 212, 0) !important;
+}
+
+.truthlens-unverifiable:hover .truthlens-icon-question {
+  fill: rgb(29, 155, 240) !important;
+}
+
+/* Loading state - smoothly hide icon and show pulsing dot */
+.truthlens-loading .truthlens-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Loading dots container */
+.truthlens-loading {
+  position: relative;
+}
+
+/* Single pulsing dot */
+.truthlens-loading::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(113, 118, 123);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: truthlens-dot-pulse 1.2s infinite ease-in-out;
+}
+
+.truthlens-loading::after {
+  display: none;
+}
+
+@keyframes truthlens-dot-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+@keyframes truthlens-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Overlay styling */
+.truthlens-overlay {
+  position: relative;
+  width: 100%;
+  background: white;
+  border: 1px solid rgb(239, 243, 244);
+  border-radius: 16px;
+  margin-top: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000 !important;
+  animation: truthlens-dropdown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block !important;
+  pointer-events: auto !important;
+  cursor: default;
+  transform-origin: top center;
+}
+
+@keyframes truthlens-dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    max-height: 2000px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .truthlens-overlay {
+    background: rgb(21, 32, 43);
+    border-color: rgb(47, 51, 54);
+    color: rgb(231, 233, 234);
+  }
+}
+
+/* Header */
+.truthlens-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.truthlens-header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Label styling */
+.truthlens-label {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.truthlens-label-true {
+  background-color: rgba(0, 186, 124, 0.15);
+  color: rgb(0, 186, 124);
+}
+
+.truthlens-label-false {
+  background-color: rgba(249, 24, 128, 0.15);
+  color: rgb(249, 24, 128);
+}
+
+.truthlens-label-misleading {
+  background-color: rgba(255, 212, 0, 0.15);
+  color: rgb(202, 138, 4);
+}
+
+.truthlens-label-unverifiable {
+  background-color: rgba(113, 118, 123, 0.15);
+  color: rgb(113, 118, 123);
+}
+
+.truthlens-label-error {
+  background-color: rgba(249, 24, 128, 0.15);
+  color: rgb(249, 24, 128);
+}
+
+/* Speaker button */
+.truthlens-speaker-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.truthlens-speaker-btn .truthlens-icon-speaker {
+  width: 20px;
+  height: 20px;
+  fill: rgb(231, 233, 234);
+}
+
+.truthlens-speaker-btn:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  transform: scale(1.1);
+}
+
+.truthlens-speaker-btn.truthlens-speaker-loading .truthlens-icon-speaker {
+  animation: truthlens-pulse 1s infinite;
+}
+
+.truthlens-speaker-btn.truthlens-speaker-playing .truthlens-icon-speaker {
+  fill: rgb(0, 186, 124);
+  animation: truthlens-pulse 1.5s infinite;
+}
+
+@keyframes truthlens-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+/* Close button */
+.truthlens-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: rgb(113, 118, 123);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.truthlens-close:hover {
+  background-color: rgba(239, 243, 244, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .truthlens-close {
+    color: rgb(231, 233, 234);
+  }
+  
+  .truthlens-close:hover {
+    background-color: rgba(47, 51, 54, 1);
+  }
+}
+
+/* Content */
+.truthlens-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.truthlens-explanation {
+  font-size: 15px;
+  line-height: 20px;
+  margin: 0;
+  color: rgb(15, 20, 25);
+}
+
+.truthlens-bias {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .truthlens-explanation {
+    color: rgb(231, 233, 234);
+  }
+}
+
+/* Sources */
+.truthlens-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgb(239, 243, 244);
+}
+
+@media (prefers-color-scheme: dark) {
+  .truthlens-sources {
+    border-top-color: rgb(47, 51, 54);
+  }
+}
+
+.truthlens-sources a {
+  color: rgb(29, 155, 240);
+  text-decoration: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.truthlens-sources a:hover {
+  text-decoration: underline;
+}
+
+.truthlens-sources a::before {
+  content: "→";
+  font-weight: bold;
+}
+
+/* Confidence */
+.truthlens-confidence {
+  font-size: 13px;
+  color: rgb(113, 118, 123);
+  font-style: italic;
+}
+
+/* Fixed Overlay for Highlight Verification */
+.truthlens-fixed-overlay {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 350px !important;
+  max-width: 90vw !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  z-index: 2147483647 !important; /* Max z-index */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Spinner for generic loading */
+.truthlens-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-left-color: currentColor;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: truthlens-spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+/* Floating Action Button */
+.truthlens-fab {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: rgb(21, 32, 43);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  animation: truthlens-pop-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.truthlens-fab svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+.truthlens-fab:hover {
+  transform: scale(1.1);
+  background: rgb(38, 50, 62);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes truthlens-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Media check button */
+.truthlens-media-check-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: rgb(29, 155, 240);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: truthlens-button-slide-in 0.3s ease-out;
+}
+
+.truthlens-media-check-btn:hover {
+  background: rgb(26, 140, 216);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
+}
+
+.truthlens-media-check-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(29, 155, 240, 0.2);
+}
+
+@keyframes truthlens-button-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.truthlens-media-check-btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+  margin-right: 6px;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.truthlens-media-check-container {
+  margin-top: 12px;
+}
+
+.truthlens-media-result {
+  margin-top: 0;
+  min-height: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.truthlens-media-result:not(:empty) {
+  margin-top: 8px;
+  max-height: 200px;
+  opacity: 1;
+}
+
+.truthlens-media-result-text {
+  padding: 8px 12px;
+  background: rgb(247, 249, 249);
+  border-radius: 8px;
+  font-size: 14px;
+  color: rgb(15, 20, 25);
+  animation: truthlens-result-appear 0.3s ease-out;
+}
+
+@keyframes truthlens-result-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.truthlens-loading-small {
+  font-size: 13px;
+  color: rgb(113, 118, 123);
+  font-style: italic;
+}
+
+.truthlens-error {
+  font-size: 13px;
+  color: rgb(249, 24, 128);
+}
