@@ -1,6 +1,6 @@
-# ForReal 🔍
+![ForReal-logo](truthlens-extension/icons/ForReal-logo-long-blue-cropped.jpg)
 
-**Real-time AI Fact-Checking & Media Verification for X (Twitter)**
+**Real-Time, AI-Powered Fact-Checking & Media Verification for X (Twitter) and Text All Across the Web**
 
 ForReal is a powerful browser extension designed to combat misinformation on social media in real-time. By leveraging advanced AI models and trusted search engines, ForReal provides users with instant context, fact-checks, and media verification directly within their X (formerly Twitter) feed.
 
