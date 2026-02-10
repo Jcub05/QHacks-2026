@@ -30,7 +30,7 @@ Edit the `.env` file with your API keys:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 BRAVE_SEARCH_API_KEY=your_brave_search_key_here
-ELEVENLABS_API_KEY=your_elevenlabs_key_here  # Optional for TTS
+ELEVENLABS_API_KEY=your_elevenlabs_key_herex  # Optional for TTS
 HIVE_API_KEY=your_hive_key_here  # Optional for AI detection
 ```
 
